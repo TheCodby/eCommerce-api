@@ -12,7 +12,7 @@ const productRouter = express.Router();
 
 // category
 categoryRouter.post("/create", createCategory);
-categoryRouter.delete("/:catId", deleteCategory);
+categoryRouter.delete("/:categoryId", deleteCategory);
 
 adminRouter.use("/category", categoryRouter);
 

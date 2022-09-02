@@ -21,7 +21,6 @@ exports.signup = async (req, res, next) => {
   // Validate user inputs
   const error = joiSchema.validate(req.body);
   if (error?.error) {
-    console.log(error);
     return res.status(500).json({
       error: error?.error?.details[0]?.message,
     });
@@ -50,7 +49,7 @@ exports.signup = async (req, res, next) => {
               email: req.body.email,
               password: hash,
               created_at: new Date(),
-              refresh_token: response.hash,
+              refresh_token: response,
             });
             user
               .save()
@@ -62,7 +61,7 @@ exports.signup = async (req, res, next) => {
                     first_name: result.first_name,
                     last_name: result.last_name,
                     created_at: result.created_at,
-                    refreshToken: response.refreshToken,
+                    refreshToken: response,
                   },
                 });
               })
@@ -92,7 +91,7 @@ exports.login = async (req, res, next) => {
           user.password,
           async (err, result) => {
             if (err) {
-              res.status(500).json({
+              return res.status(500).json({
                 error: err,
               });
             }
@@ -109,11 +108,13 @@ exports.login = async (req, res, next) => {
                   expiresIn: "1h",
                 }
               );
+              const new_refresh_token = await generateRefreshToken();
+              await user.updateOne({ refresh_token: new_refresh_token }).exec();
               return res.status(200).json({
                 message: "Authorization Successful",
                 user: {
                   token: token,
-                  refresh_token: user.refresh_token,
+                  refresh_token: new_refresh_token,
                 },
               });
             } else {
@@ -135,10 +136,7 @@ exports.login = async (req, res, next) => {
 exports.generateNewToken = (req, res, next) => {
   const token = req.body.refresh_token;
   if (token) {
-    const encryptedToken = createHmac("sha256", process.env.SHA256_KEY)
-      .update(token)
-      .digest("hex");
-    User.findOne({ refresh_token: encryptedToken })
+    User.findOne({ refresh_token: token })
       .then((user) => {
         if (user) {
           const token = jwt.sign(

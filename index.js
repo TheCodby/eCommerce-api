@@ -10,6 +10,7 @@ const categoryRouter = require("./api/routes/category");
 const productRouter = require("./api/routes/product");
 const adminRouter = require("./api/routes/admin");
 const { verifyUser, verifyAdmin } = require("./api/middlewares/verifyToken");
+const cartRouter = require("./api/routes/cart");
 
 const app = express();
 app.use(helmet());
@@ -20,6 +21,7 @@ app.use(morgan("combined"));
 app.use("/auth", authRoutes);
 app.use("/product", verifyUser, productRouter);
 app.use("/category", verifyUser, categoryRouter);
+app.use("/cart", cartRouter);
 app.use("/admin", verifyUser, verifyAdmin, adminRouter);
 app.use((error, req, res, next) => {
   res.status(error.status || 500);

@@ -15,7 +15,7 @@ exports.createCategory = (req, res, next) => {
     });
 };
 exports.deleteCategory = (req, res, next) => {
-  Category.findById(req.params.catId, async (err, category) => {
+  Category.findById(req.params.categoryId, async (err, category) => {
     if (category && !err) {
       await category.remove();
       res
@@ -40,32 +40,32 @@ exports.createProduct = (req, res, next) => {
     price: req.body.price,
     quantity: req.body.quantity,
     category: req.body.category_id,
+    image: req.body.image,
   })
     .save()
     .then(async (result) => {
-      console.log(req.body.category_id);
       const categoryRelated = await Category.findById(req.body.category_id);
       // push the comment into the post.comments array
-      console.log(categoryRelated);
       categoryRelated.products.push(result);
       // save and redirect...
       await categoryRelated.save(function (err) {
         if (err) {
           console.log(err);
+          return;
         }
         res.json(result).status(201);
       });
     })
     .catch((err) => {
-      console.log(err);
       res.status(500).json({
-        error: err,
+        error: err.message,
       });
     });
 };
 exports.deleteProduct = (req, res, next) => {
-  Product.findByIdAndRemove(req.params.catId, (err, product) => {
-    if (product) {
+  Product.findById(req.params.productId, async (err, product) => {
+    if (product && !err) {
+      await product.remove();
       res
         .json({
           message: `Successfully deleted product ${product.name}`,

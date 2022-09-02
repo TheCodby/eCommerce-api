@@ -1,4 +1,4 @@
-const { createHmac } = require("node:crypto");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const characters =
@@ -16,11 +16,10 @@ function generateString(length) {
 
 exports.generateRefreshToken = async () => {
   const refreshToken = generateString(64);
-  console.log(refreshToken);
-  const hash = createHmac("sha256", process.env.SHA256_KEY)
-    .update(refreshToken)
-    .digest("hex");
-  return { hash, refreshToken };
+  return refreshToken;
 };
 
-exports.checkRefreshToken = (token) => {};
+exports.getUserByToken = async (token) => {
+  var decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  return decoded;
+};
